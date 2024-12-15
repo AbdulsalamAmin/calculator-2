@@ -2,6 +2,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <thread>
 #include <vector>
 #include "../include/calculator.h"
 // using namespace std;

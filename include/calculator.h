@@ -11,5 +11,4 @@ public:
     std::vector<int> GetNumbersFromFile(const std::string& filename);
     int calculate(const std::vector<int>& numbers);
 };
-
 #endif // CALCULATOR_H

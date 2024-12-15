@@ -4,6 +4,8 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <numeric>
+#include <thread>
 
 
 std::vector<int> Calculator::GetNumbersFromConsole(){
@@ -35,11 +37,33 @@ std::vector<int> Calculator::GetNumbersFromFile(const std::string& filename){
 
 }
 int Calculator::calculate(const std::vector<int>& numbers){
-    int sum = 0;
-    for(int num:numbers){
-        sum +=num;
+    int num_threads = std::min(static_cast<int>(std::thread::hardware_concurrency()),num_threads);
+    std::cout<<"Number of threads cpu "<<std::thread::hardware_concurrency()<<std::endl;
+    std::cout<<"Enter the number of threads: ";
+    std::cin>>num_threads;
+    std::size_t chunk_size = numbers.size()/num_threads;
+
+
+    std::vector<int> partial_sums(num_threads,0);
+    auto sum_chunk = [&numbers](size_t start, size_t end, int& result) {
+        result = std::accumulate(numbers.begin() + start, numbers.begin() + end, 0);
+    };
+
+    std::vector<std::thread> threads;
+    for (int i = 0; i < num_threads; ++i) {
+        size_t start = i * chunk_size;
+        size_t end = (i == num_threads - 1) ? numbers.size() : start + chunk_size;
+
+        threads.emplace_back(sum_chunk, start, end, std::ref(partial_sums[i]));
     }
-    return sum;
+
+    for (auto& t : threads) {
+        t.join();
+    }
+
+    int total_sum = std::accumulate(partial_sums.begin(), partial_sums.end(), 0);
+
+    return total_sum;
 
 }
 
